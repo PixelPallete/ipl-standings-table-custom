@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pixelpallete.github.io/ipl-standings-table-custom/sitemap.xml
