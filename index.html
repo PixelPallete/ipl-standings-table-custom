@@ -1,0 +1,1073 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Pitch League Standings</title>
+  <style>
+    /* Base styles */
+    :root {
+      --primary: #1e40af;
+      --primary-light: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --gray: #9ca3af;
+      --gray-light: #f3f4f6;
+      --gray-dark: #4b5563;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .header {
+      background-color: var(--primary);
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+      border-radius: 0 0 0.5rem 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .header h1 {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .header p {
+      text-align: center;
+      opacity: 0.8;
+      font-size: 1.125rem;
+    }
+    
+    .table-container {
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th {
+      background-color: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-light);
+      font-size: 0.9375rem;
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+    
+    tr:hover td {
+      background-color: var(--gray-light);
+    }
+    
+    .placeholder {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin: 0 2px;
+    }
+    
+    .win {
+      background-color: var(--green);
+    }
+    
+    .loss {
+      background-color: var(--red);
+    }
+    
+    .neutral {
+      background-color: var(--gray);
+    }
+    
+    .match-btn {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: none;
+      margin-right: 0.5rem;
+      transition: all 0.2s;
+    }
+    
+    .win-btn {
+      background-color: var(--green);
+      color: white;
+    }
+    
+    .win-btn:hover {
+      background-color: #16a34a;
+    }
+    
+    .loss-btn {
+      background-color: var(--red);
+      color: white;
+    }
+    
+    .loss-btn:hover {
+      background-color: #dc2626;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      width: 95%;
+      max-width: 500px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .modal-header {
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+    }
+    
+    .modal-body {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--gray-dark);
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 0.25rem;
+    }
+    
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #1e3a8a;
+    }
+    
+    .btn-secondary {
+      background-color: #e5e7eb;
+      color: var(--gray-dark);
+    }
+    
+    .btn-secondary:hover {
+      background-color: #d1d5db;
+    }
+    
+    .center-text {
+      text-align: center;
+    }
+    
+    .action-buttons {
+      max-width: 1200px;
+      margin: 0 auto 1rem auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.2s;
+      color: white;
+    }
+    
+    .reset-btn {
+      background-color: var(--red);
+    }
+    
+    .reset-btn:hover {
+      background-color: #dc2626;
+    }
+    
+    .export-btn {
+      background-color: var(--primary);
+    }
+    
+    .export-btn:hover {
+      background-color: #1e3a8a;
+    }
+    
+    .icon {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .confirm-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 0.5rem;
+      }
+      
+      th, td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+      }
+      
+      .modal-content {
+        width: 90%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .table-container {
+        overflow-x: auto;
+      }
+      
+      table {
+        min-width: 800px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <h1>Virtual Pitch League</h1>
+      <p>Season 2024</p>
+    </div>
+  </div>
+  
+  <div class="action-buttons">
+    <button id="reset-btn" class="action-btn reset-btn">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+        <path d="M3 3v5h5"></path>
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+        <path d="M16 21h5v-5"></path>
+      </svg>
+      Reset All Teams
+    </button>
+  </div>
+  
+  <div class="container">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Team</th>
+            <th>M</th>
+            <th>W</th>
+            <th>L</th>
+            <th>NRR</th>
+            <th>Pts</th>
+            <th>Last 4</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="standings-body">
+          <!-- Table content will be generated by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <div id="match-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Record Result</h3>
+      </div>
+      <div class="modal-body">
+        <form id="match-form">
+          <div class="form-group">
+            <label for="runsScored">Runs Scored</label>
+            <input type="number" id="runsScored" value="0" min="0" required>
+          </div>
+          <div class="form-group">
+            <label for="oversFaced">Overs Faced</label>
+            <input type="number" id="oversFaced" value="0" min="0" step="0.1" required>
+          </div>
+          <div class="form-group">
+            <label for="runsAgainst">Runs Against</label>
+            <input type="number" id="runsAgainst" value="0" min="0" required>
+          </div>
+          <div class="form-group">
+            <label for="oversPlayed">Overs Played</label>
+            <input type="number" id="oversPlayed" value="0" min="0" step="0.1" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="submit-btn">Submit</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="confirm-modal" class="confirm-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Reset All Teams</h3>
+      </div>
+      <div class="modal-body">
+        <p>This will reset all team statistics including points, matches, and NRR to zero. This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancel-reset-btn">Cancel</button>
+        <button class="btn btn-primary" id="confirm-reset-btn" style="background-color: var(--red);">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial team data
+    let teams = [
+  {
+    "id": 1,
+    "name": "Mumbai Indians",
+    "shortName": "MI",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Chennai Super Kings",
+    "shortName": "CSK",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Royal Challengers Bangalore",
+    "shortName": "RCB",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Kolkata Knight Riders",
+    "shortName": "KKR",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Delhi Capitals",
+    "shortName": "DC",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Punjab Kings",
+    "shortName": "PBKS",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Rajasthan Royals",
+    "shortName": "RR",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Sunrisers Hyderabad",
+    "shortName": "SRH",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Gujarat Titans",
+    "shortName": "GT",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Lucknow Super Giants",
+    "shortName": "LSG",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  }
+];
+    
+    // Original team data to reset to
+    const initialTeams = [
+  {
+    "id": 1,
+    "name": "Mumbai Indians",
+    "shortName": "MI",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Chennai Super Kings",
+    "shortName": "CSK",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Royal Challengers Bangalore",
+    "shortName": "RCB",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Kolkata Knight Riders",
+    "shortName": "KKR",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Delhi Capitals",
+    "shortName": "DC",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Punjab Kings",
+    "shortName": "PBKS",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Rajasthan Royals",
+    "shortName": "RR",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Sunrisers Hyderabad",
+    "shortName": "SRH",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Gujarat Titans",
+    "shortName": "GT",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Lucknow Super Giants",
+    "shortName": "LSG",
+    "matches": 0,
+    "won": 0,
+    "lost": 0,
+    "points": 0,
+    "nrr": 0,
+    "stats": {
+      "runsScored": 0,
+      "oversFaced": 0,
+      "runsAgainst": 0,
+      "oversPlayed": 0
+    },
+    "recentForm": [
+      "N",
+      "N",
+      "N",
+      "N"
+    ]
+  }
+];
+    
+    // Load teams from local storage if available
+    const savedTeams = localStorage.getItem('standingsData');
+    if (savedTeams) {
+      teams = JSON.parse(savedTeams);
+    }
+    
+    // Elements
+    const standingsBody = document.getElementById('standings-body');
+    const matchModal = document.getElementById('match-modal');
+    const confirmModal = document.getElementById('confirm-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const matchForm = document.getElementById('match-form');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const cancelResetBtn = document.getElementById('cancel-reset-btn');
+    const confirmResetBtn = document.getElementById('confirm-reset-btn');
+    
+    // Current action and team
+    let currentTeamId = null;
+    let currentAction = null;
+    
+    // Functions
+    function calculateNRR(stats) {
+      const teamRunRate = stats.runsScored / stats.oversFaced;
+      const oppositionRunRate = stats.runsAgainst / stats.oversPlayed;
+      return Number((teamRunRate - oppositionRunRate).toFixed(3));
+    }
+    
+    function updateTeamStats(team, action, stats) {
+      const newStats = {
+        runsScored: team.stats.runsScored + stats.runsScored,
+        oversFaced: team.stats.oversFaced + stats.oversFaced,
+        runsAgainst: team.stats.runsAgainst + stats.runsAgainst,
+        oversPlayed: team.stats.oversPlayed + stats.oversPlayed,
+      };
+    
+      return {
+        ...team,
+        matches: team.matches + 1,
+        won: action === "win" ? team.won + 1 : team.won,
+        lost: action === "loss" ? team.lost + 1 : team.lost,
+        points: action === "win" ? team.points + 2 : team.points,
+        stats: newStats,
+        nrr: calculateNRR(newStats),
+        recentForm: [action === "win" ? "W" : "L", ...team.recentForm.slice(0, 3)],
+      };
+    }
+    
+    function sortTeams(teamsArray) {
+      return [...teamsArray].sort((a, b) => {
+        if (a.points !== b.points) {
+          return b.points - a.points;
+        }
+        return b.nrr - a.nrr;
+      });
+    }
+    
+    function renderTeams() {
+      standingsBody.innerHTML = '';
+      
+      sortTeams(teams).forEach((team, index) => {
+        const row = document.createElement('tr');
+        
+        // Position
+        const posCell = document.createElement('td');
+        posCell.textContent = index + 1;
+        row.appendChild(posCell);
+        
+        // Team name
+        const nameCell = document.createElement('td');
+        nameCell.textContent = team.name;
+        row.appendChild(nameCell);
+        
+        // Matches
+        const matchesCell = document.createElement('td');
+        matchesCell.textContent = team.matches;
+        row.appendChild(matchesCell);
+        
+        // Wins
+        const winsCell = document.createElement('td');
+        winsCell.textContent = team.won;
+        row.appendChild(winsCell);
+        
+        // Losses
+        const lossesCell = document.createElement('td');
+        lossesCell.textContent = team.lost;
+        row.appendChild(lossesCell);
+        
+        // NRR
+        const nrrCell = document.createElement('td');
+        nrrCell.textContent = team.nrr.toFixed(3);
+        row.appendChild(nrrCell);
+        
+        // Points
+        const pointsCell = document.createElement('td');
+        pointsCell.textContent = team.points;
+        row.appendChild(pointsCell);
+        
+        // Form
+        const formCell = document.createElement('td');
+        formCell.className = 'center-text';
+        
+        team.recentForm.forEach(result => {
+          const dot = document.createElement('span');
+          dot.className = `placeholder ${
+            result === 'W' ? 'win' : result === 'L' ? 'loss' : 'neutral'
+          }`;
+          formCell.appendChild(dot);
+        });
+        
+        row.appendChild(formCell);
+        
+        // Actions
+        const actionsCell = document.createElement('td');
+        
+        const winBtn = document.createElement('button');
+        winBtn.className = 'match-btn win-btn';
+        winBtn.textContent = 'Win';
+        winBtn.onclick = () => openMatchModal(team.id, 'win');
+        actionsCell.appendChild(winBtn);
+        
+        const lossBtn = document.createElement('button');
+        lossBtn.className = 'match-btn loss-btn';
+        lossBtn.textContent = 'Loss';
+        lossBtn.onclick = () => openMatchModal(team.id, 'loss');
+        actionsCell.appendChild(lossBtn);
+        
+        row.appendChild(actionsCell);
+        
+        standingsBody.appendChild(row);
+      });
+      
+      // Save to local storage
+      localStorage.setItem('standingsData', JSON.stringify(teams));
+    }
+    
+    function openMatchModal(teamId, action) {
+      const team = teams.find(t => t.id === teamId);
+      
+      if (!team) return;
+      
+      currentTeamId = teamId;
+      currentAction = action;
+      
+      modalTitle.textContent = `Record ${action.toUpperCase()} for ${team.name}`;
+      
+      document.getElementById('runsScored').value = 0;
+      document.getElementById('oversFaced').value = 0;
+      document.getElementById('runsAgainst').value = 0;
+      document.getElementById('oversPlayed').value = 0;
+      
+      matchModal.style.display = 'flex';
+    }
+    
+    function closeMatchModal() {
+      matchModal.style.display = 'none';
+      currentTeamId = null;
+      currentAction = null;
+    }
+    
+    function handleSubmit() {
+      if (!currentTeamId || !currentAction) return;
+      
+      const stats = {
+        runsScored: Number(document.getElementById('runsScored').value),
+        oversFaced: Number(document.getElementById('oversFaced').value),
+        runsAgainst: Number(document.getElementById('runsAgainst').value),
+        oversPlayed: Number(document.getElementById('oversPlayed').value),
+      };
+      
+      // Validate inputs
+      if (stats.oversFaced <= 0 || stats.oversPlayed <= 0) {
+        alert('Overs must be greater than 0');
+        return;
+      }
+      
+      teams = teams.map(team => {
+        if (team.id === currentTeamId) {
+          return updateTeamStats(team, currentAction, stats);
+        }
+        return team;
+      });
+      
+      renderTeams();
+      closeMatchModal();
+    }
+    
+    function openConfirmModal() {
+      confirmModal.style.display = 'flex';
+    }
+    
+    function closeConfirmModal() {
+      confirmModal.style.display = 'none';
+    }
+    
+    function resetAllTeams() {
+      teams = JSON.parse(JSON.stringify(initialTeams));
+      renderTeams();
+      closeConfirmModal();
+    }
+    
+    // Event listeners
+    cancelBtn.addEventListener('click', closeMatchModal);
+    submitBtn.addEventListener('click', handleSubmit);
+    resetBtn.addEventListener('click', openConfirmModal);
+    cancelResetBtn.addEventListener('click', closeConfirmModal);
+    confirmResetBtn.addEventListener('click', resetAllTeams);
+    
+    // Initialize
+    renderTeams();
+  </script>
+</body>
+</html>
+  
